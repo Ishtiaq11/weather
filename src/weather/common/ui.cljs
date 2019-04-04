@@ -15,8 +15,10 @@
 (def image (r/adapt-react-class (j/get ReactNative :Image)))
 (def img-bg (r/adapt-react-class (j/get ReactNative :ImageBackground)))
 (def touchable-highlight (r/adapt-react-class (j/get ReactNative :TouchableHighlight)))
+(def os (j/get-in ReactNative [:Platform :OS]))
 (def platform (j/get ReactNative :Platform))
-(def os (j/get platform :OS))
+(def status-bar (r/adapt-react-class (j/get ReactNative :StatusBar)))
+(def activity-indicator (r/adapt-react-class (j/get ReactNative :ActivityIndicator)))
 (def Alert (j/get ReactNative :Alert))
 
 (defn alert [title]

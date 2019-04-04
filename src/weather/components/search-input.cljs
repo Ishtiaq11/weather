@@ -1,6 +1,6 @@
 (ns weather.components.search-input
   (:require [reagent.core :as r :refer [atom]]
-            [re-frame.core :refer [dispatch]]
+            [re-frame.core :refer [dispatch dispatch-sync]]
             [applied-science.js-interop :as j]
 
             [weather.common.ui :refer [view text-input]]
@@ -25,11 +25,11 @@
                     :on-change-text #(reset! txt %)
                     :on-submit-editing #(when (not= (count @txt) 0)
                                           (do
-                                            (println "you want the weather of" @txt "city")
-                                            (dispatch [:update-city-name @txt])
+                                            (j/call js/console :log "you want the weather of" @txt "city")
+                                            ; (dispatch [:update-city-name @txt])
                                             (dispatch [:fetch-location-id @txt])
-                                            (reset! txt "")))}]
-       (println "our txt: " @txt)])))
+                                            (reset! txt "")))}]])))
+       ; (println "our txt: " @txt)])))
        ; (let [this (r/current-component)]
        ;   (println "cur comp" this)
        ;   (println "args are" (r/children this))

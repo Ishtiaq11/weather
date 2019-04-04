@@ -42,9 +42,9 @@
     (assoc db :greeting value)))
 
 (reg-event-db
-  :set-initial-city
-  (fn [db [_ city-name]]
-    (assoc db :city-name city-name)))
+  :initialize-weather-info
+  (fn [db _]
+    (assoc db :city-name "Dhaka" :loading true :error false)))
 
 (reg-event-db
   :update-city-name
@@ -101,14 +101,38 @@
 ;       (println "fetch data for city" city))))
 
 (reg-event-db
-  :get-location-woeid
-  (fn [db [_ result]]
-    (j/call js/console :log (str "LOCATION" (get result 0)))))
+  :update-weather-info
+  (fn [db [_ {:keys [title consolidated_weather]}]]
+    (let [{:keys [weather_state_name the_temp]} (get consolidated_weather 0)]
+      (assoc db :weather-state-name weather_state_name :temperature the_temp :loading false :error false))))
+
+(reg-event-fx
+  :fetch-weather
+  (fn [{:keys [db]} [_ woeid]]
+    {:http-xhrio {:method :get
+                  :uri (str "https://www.metaweather.com/api/location/" woeid "/")
+                  :timeout 8000
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success [:update-weather-info]
+                  :on-failure [:show-error-message]}}))
+     ; :db db}))
+
+
 
 (reg-event-db
   :show-error-message
   (fn [db [_ result]]
-    (j/call js/console :error (str "Something bad happened: " (:status result) " " (:status-text result)))))
+    (j/call js/console :log (str "Something bad happened: " (:status result) " " (:status-text result)))
+    (assoc db :error true :loading false)))
+
+(reg-event-fx
+  :get-location-woeid
+  (fn [{:keys [db]} [_ result]]
+    (let [location (get result 0)
+          woeid (:woeid location)]
+      (j/call js/console :log (str "LOCATION: " (get result 0)))
+      {:db (assoc db :woeid woeid)
+       :dispatch [:fetch-weather woeid]})))
 
 (reg-event-fx
   :fetch-location-id
@@ -119,4 +143,6 @@
                   :timeout 8000
                   :response-format (ajax/json-response-format {:keywords? true})
                   :on-success [:get-location-woeid]
-                  :on-failure [:show-error-message]}}))
+                  :on-failure [:show-error-message]}
+     :db (assoc db :city-name city :loading true)}))
+     ; :dispatch-later [{:ms 600 :dispatch [:fetch-weather (:woeid db)]}]}))

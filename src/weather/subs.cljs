@@ -15,3 +15,23 @@
   :app-db
   (fn [db _]
     db))
+
+(reg-sub
+  :weather-state-name
+  (fn [db _]
+    (:weather-state-name db)))
+
+(reg-sub
+  :temperature
+  (fn [db _]
+    (:temperature db)))
+
+(reg-sub
+  :loading
+  (fn [db _]
+    (:loading db)))
+
+(reg-sub
+  :error
+  (fn [db _]
+    (:error db)))
