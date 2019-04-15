@@ -2,12 +2,13 @@
   (:require [re-frame.core :refer [subscribe dispatch dispatch-sync]]
             [reagent.core :as r :refer [atom]]
             [applied-science.js-interop :as j]
+            [clojure.string :as string]
             [day8.re-frame.http-fx]
             [weather.handlers]
             [weather.subs]
             [weather.common.ui :refer [text view os expo platform keyboard-avoiding-view img-bg status-bar activity-indicator]]
             [weather.components.search-input :refer [search-input]]
-            [weather.utils :refer [image-source-map]]))
+            [weather.utils :refer [weather-image-map]]))
 ;
 ; (def testmap {:ios {:name "apple"}
 ;               :android {:name "android is for average"}})
@@ -15,9 +16,21 @@
 
 (declare styles)
 
-; (defn weather-info
-;   [city-name weather-state-name temperature])
+(defn weather-info
+  [city-name weather-state-name temperature]
+  [view
+   [text {:style (merge (:large-text styles) (:text-style styles))} city-name]
+   [text {:style (merge (:small-text styles) (:text-style styles))} weather-state-name]
+   [text {:style (merge (:large-text styles) (:text-style styles))} (str (j/call js/Math :round temperature) "\u00B0")]])
 
+(def get-image-for-weather (fn [weather]
+                             (when weather
+                               (get weather-image-map (keyword (string/replace weather " " ""))))))
+
+(def handle-update-location (fn [city]
+                              (and city (> (count city) 0)
+                                (dispatch [:fetch-location-id city])
+                                (j/call js/console :log "update location: " city))))
 
 (defn app-root []
   (let [city-name (subscribe [:city-name])
@@ -30,7 +43,9 @@
       {:display-name "weather-view-component"
        :component-did-mount
        (fn []
-         (dispatch [:fetch-location-id @city-name]))
+         (handle-update-location @city-name)
+         ; (j/call js/console :log "Weather state name: " @weather-state-name)
+         (j/call js/console :log "Component did mount for city: " @city-name))
        :reagent-render
        (fn []
          [keyboard-avoiding-view {:style (:container styles) :behavior "padding"}
@@ -38,27 +53,25 @@
           ; (println "platform.select test: " (:name mytest))
           ; (println "OS === " os)
           ; (println "text style: " (:text-style styles))
-          [status-bar {:bar-style "light-content" :background-color "blue"}]
-          [img-bg {:source (:clear image-source-map)
+          [status-bar {:bar-style "light-content"}]
+          [img-bg {:source (get-image-for-weather @weather-state-name)
                    :style (:image-container styles)
                    :image-style (:image styles)}
            [view {:style (:details-container styles)}
             ; (println "view update")
             ; (j/call js/console :log "City name: " @city-name)
-            (if-not @loading?
+            [activity-indicator {:animating @loading? :color "black" :size "large"}]
+            (when-not @loading?
               (if-not @error?
-                [view
-                 [text {:style (merge (:large-text styles) (:text-style styles))} @city-name]
-                 [text {:style (merge (:small-text styles) (:text-style styles))} @weather-state-name]
-                 [text {:style (merge (:large-text styles) (:text-style styles))} (str (j/call js/Math :round @temperature) "\u00B0")]]
-                [view
-                 [text {:style (merge (:small-text styles) (:text-style styles))} "Could not load weather, please try a different city."]])
+                [weather-info @city-name @weather-state-name @temperature]
+                [text {:style (merge (:small-text styles) (:text-style styles))} "Could not load weather, please try a different city."]))
               ; [view
                ; [text {:style (merge (:large-text styles) (:text-style styles))} "Loading!!!!!!!!!!!!!!!!"
-              [activity-indicator {:animating true :color "white" :size "large"}])
 
-            [search-input "Search any city"]
+            [search-input {:placeholder "Search any city" :on-submit handle-update-location}]
+            ; (j/call js/console :log "Weather state name: " @weather-state-name)
             (j/call js/console :log "APP-DB: " (clj->js @app-db))]]])})))
+            ; (j/call js/console :log "image name keyword: " (keyword (string/replace "Heavy Rain" " " "")))]]])})))
 
 (defn init []
   (dispatch-sync [:initialize-db])

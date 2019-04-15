@@ -10,25 +10,29 @@
 
 (declare styles)
 
+(def handle-submit-editing (fn [{:keys [text on-submit]}]
+                             (j/call js/console :log "handle submit editing")
+                             (when (> (count @text) 0)
+                               (do
+                                 ; (j/call js/console :log "you want the weather of" @txt "city")
+                                 ; (dispatch [:update-city-name @txt])
+                                 (on-submit @text)
+                                 (reset! text "")))))
+
 (defn search-input
-  [placeholder]
+  [{:keys [placeholder on-submit]}]
   (let [txt (atom "")]
-    (fn [placeholder]
+    (fn [{:keys [placeholder on-submit]}]
       [view {:style (:container styles)}
        [text-input {:style (:text-input styles)
                     :auto-correct false
                     :value @txt
-                    :placeholder placeholder
+                    :placeholder (if-not placeholder "" placeholder)
                     :placeholder-text-color "white"
                     :underline-color-android "transparent"
                     :clear-button-mode "always"
                     :on-change-text #(reset! txt %)
-                    :on-submit-editing #(when (not= (count @txt) 0)
-                                          (do
-                                            (j/call js/console :log "you want the weather of" @txt "city")
-                                            ; (dispatch [:update-city-name @txt])
-                                            (dispatch [:fetch-location-id @txt])
-                                            (reset! txt "")))}]])))
+                    :on-submit-editing #(handle-submit-editing {:text txt :on-submit on-submit})}]])))
        ; (println "our txt: " @txt)])))
        ; (let [this (r/current-component)]
        ;   (println "cur comp" this)

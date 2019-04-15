@@ -44,7 +44,7 @@
 (reg-event-db
   :initialize-weather-info
   (fn [db _]
-    (assoc db :city-name "Dhaka" :loading true :error false)))
+    (assoc db :city-name "Dhaka" :loading true)))
 
 (reg-event-db
   :update-city-name
@@ -137,6 +137,7 @@
 (reg-event-fx
   :fetch-location-id
   (fn [{:keys [db]} [_ city]]
+    (j/call js/console :log "fetch loction id")
     {:http-xhrio {:method :get
                   :uri "https://www.metaweather.com/api/location/search/"
                   :params {:query city}

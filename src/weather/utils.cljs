@@ -1,3 +1,12 @@
 (ns weather.utils)
 
-(def image-source-map {:clear (js/require "./assets/images/clear.png")})
+(def weather-image-map {:Clear (js/require "./assets/images/clear.png")
+                        :Hail (js/require "./assets/images/hail.png")
+                        :HeavyCloud (js/require "./assets/images/heavy-cloud.png")
+                        :Showers (js/require "./assets/images/showers.png")
+                        :HeavyRain (js/require "./assets/images/heavy-rain.png")
+                        :LightCloud (js/require "./assets/images/light-cloud.png")
+                        :LightRain (js/require "./assets/images/light-rain.png")
+                        :Sleet (js/require "./assets/images/sleet.png")
+                        :Snow (js/require "./assets/images/snow.png")
+                        :Thunder (js/require "./assets/images/thunder.png")})
